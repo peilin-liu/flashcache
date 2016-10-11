@@ -60,9 +60,9 @@ while(1){
     $result{$_} = ($status{$_} - $status_old{$_}) / ($interval + 0.00001); 
   }
   # calculate hit percent
-  $result{read_hit_percent} = sprintf "%d", ($result{read_hits} * 100) / ($result{reads} + 0.0001);
-  $result{write_hit_percent} = sprintf "%d",  ($result{write_hits} * 100)/ ($result{writes} + 0.0001);
-  $result{dirty_write_hit_percent} = sprintf "%d", ($result{dirty_write_hits} * 100) / ($result{writes} + 0.0001);
+  $result{read_hit_percent} = sprintf "%d", (($result{read_hits} || 0) * 100) / (($result{reads} || 0) + 0.0001);
+  $result{write_hit_percent} = sprintf "%d",  (($result{write_hits} || 0) * 100)/ (($result{writes} || 0) + 0.0001);
+  $result{dirty_write_hit_percent} = sprintf "%d", (($result{dirty_write_hits} || 0) * 100) / (($result{writes} || 0) + 0.0001);
 
   # print value
   print YELLOW();
@@ -89,21 +89,21 @@ while(1){
   $result{uncached_writes} > 100 ? print RED() : print GREEN();
   printf "%7d ", $result{uncached_writes} and print RESET();
 
-  $result{metadata_ssd_writes} > 100 ? print RED() : print WHITE();
-  printf "%7d ", $result{metadata_ssd_writes} and print RESET();
-  $result{cleanings} > 100 ? print RED() : print WHITE();
-  printf "%7d ", $result{cleanings} and print RESET();
-  $result{replacement} > 100 ? print RED() : print WHITE();
-  printf "%7d ", $result{replacement} and print RESET();
-  $result{write_replacement} > 100 ? print RED() : print WHITE();
-  printf "%7d ", $result{write_replacement} and print RESET();
+  ($result{metadata_ssd_writes} || 0) > 100 ? print RED() : print WHITE();
+  printf "%7d ", ($result{metadata_ssd_writes} || 0) and print RESET();
+  ($result{cleanings} || 0) > 100 ? print RED() : print WHITE();
+  printf "%7d ", ($result{cleanings} || 0) and print RESET();
+  ($result{replacement} || 0) > 100 ? print RED() : print WHITE();
+  printf "%7d ", ($result{replacement} || 0) and print RESET();
+  ($result{write_replacement} || 0) > 100 ? print RED() : print WHITE();
+  printf "%7d ", ($result{write_replacement} || 0) and print RESET();
 
   $result{read_hit_percent} < 90 ? print RED() : print GREEN();
   printf "%6s ", $result{read_hit_percent}."|".$hit{read_hit_percent} and print RESET();
   $result{write_hit_percent} < 90 ? print RED() : print GREEN();
-  printf "%6s ", $result{write_hit_percent}."|".$hit{write_hit_percent} and print RESET();
+  printf "%6s ", ($result{write_hit_percent} || 0)."|".($hit{write_hit_percent} || 0) and print RESET();
   $result{dirty_write_hit_percent} < 90 ? print RED() : print GREEN();
-  printf "%6s ", $result{dirty_write_hit_percent}."|".$hit{dirty_write_hit_percent} and print RESET();
+  printf "%6s ", ($result{dirty_write_hit_percent} || 0)."|".($hit{dirty_write_hit_percent} || 0) and print RESET();
   print "\n";
   print RESET();
 
