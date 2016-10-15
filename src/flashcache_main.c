@@ -243,8 +243,7 @@ flashcache_io_callback(unsigned long error, void *context)
 		spin_unlock_irqrestore(&cache_set->set_spin_lock, flags);
 		if (likely(error == 0)) {
 			/* Kick off the write to the cache */
-			if (dmc->sysctl_reclaim_policy != FLASHCACHE_LRU
-				|| cacheblk->use_cnt >= dmc->sysctl_lru_promote_thresh)
+			if (cacheblk->lru_state & LRU_HOT)
 			{
 				job->action = READFILL;
 				push_io(job);
@@ -1468,8 +1467,7 @@ flashcache_read(struct cache_c *dmc, struct bio *bio)
 		cacheblk = &dmc->cache[index];
 		if ((cacheblk->cache_state & VALID) && 
 		    (cacheblk->dbn == bio->bi_sector)) {
-			if (dmc->sysctl_reclaim_policy == FLASHCACHE_LRU
-				&& cacheblk->use_cnt < dmc->sysctl_lru_promote_thresh) {
+			if (cacheblk->lru_state & LRU_WARM) {
 				flashcache_read_miss(dmc, bio, index);
 			}
 			else {
