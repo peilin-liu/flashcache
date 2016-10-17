@@ -375,7 +375,7 @@ flashcache_enq_pending(struct cache_c *dmc, struct bio* bio,
 	spin_lock_irqsave(&dmc->cache_pending_q_spinlock, flags);
 	head = &dmc->pending_job_hashbuckets[FLASHCACHE_PENDING_JOB_HASH(index)];
 	DPRINTK("flashcache_enq_pending: Queue to pending Q Index %d %llu",
-		index, bio->bi_sector);
+		index, (u_int64_t)bio->bi_sector);
 	VERIFY(job != NULL);
 	job->action = action;
 	job->index = index;

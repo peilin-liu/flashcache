@@ -518,7 +518,7 @@ flashcache_do_pending_noerror(struct kcached_job *job)
 		cacheblk->nr_queued--;
 		if (pending_job->action == INVALIDATE) {
 			DPRINTK("flashcache_do_pending: INVALIDATE  %llu",
-				pending_job->bio->bi_sector);
+				(u_int64_t)pending_job->bio->bi_sector);
 			VERIFY(pending_job->bio != NULL);
 			queued = flashcache_inval_blocks(dmc, pending_job->bio);
 			if (queued) {
