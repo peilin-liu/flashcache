@@ -47,8 +47,13 @@
 #define bi_idx		bi_iter.bi_idx
 #endif
 
+#ifndef DMC_DEBUG
 #define DMC_DEBUG 0
+#endif
+
+#ifndef DMC_DEBUG_LITE
 #define DMC_DEBUG_LITE 0
+#endif
 
 #define DM_MSG_PREFIX "flashcache"
 #define DMC_PREFIX "flashcache: "
