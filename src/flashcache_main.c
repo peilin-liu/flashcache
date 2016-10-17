@@ -1469,7 +1469,7 @@ flashcache_read(struct cache_c *dmc, struct bio *bio)
 		if ((cacheblk->cache_state & VALID) && 
 		    (cacheblk->dbn == bio->bi_sector)) {
 			if (dmc->sysctl_reclaim_policy == FLASHCACHE_LRU
-				&& cacheblk->lru_state & LRU_WARM) {
+				&& !(cacheblk->lru_state & LRU_HOT)) {
 				flashcache_read_miss(dmc, bio, index);
 			}
 			else {
