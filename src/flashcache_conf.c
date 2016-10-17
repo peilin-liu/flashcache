@@ -309,7 +309,7 @@ flashcache_writeback_md_store(struct cache_c *dmc)
 	
 	DPRINTK("Store metadata to disk: block size(%u), md block size(%u), cache size(%llu)" \
 	        "associativity(%u)",
-	        header->block_size, header->md_block_size, header->size,
+	        header->block_size, header->md_block_size, (u_int64_t)header->size,
 	        header->assoc);
 
 	where.sector = 0;
@@ -641,7 +641,7 @@ flashcache_writeback_load(struct cache_c *dmc)
 		
 	DPRINTK("Loaded cache conf: version(%d), block size(%u), md block size(%u), cache size(%llu), " \
 	        "associativity(%u)",
-	        header->cache_version, header->block_size, header->md_block_size, header->size,
+	        header->cache_version, header->block_size, header->md_block_size, (u_int64_t)header->size,
 	        header->assoc);
 	if (!((header->cache_sb_state == CACHE_MD_STATE_DIRTY) ||
 	      (header->cache_sb_state == CACHE_MD_STATE_CLEAN) ||

@@ -495,7 +495,7 @@ flashcache_do_pending_noerror(struct kcached_job *job)
 		goto out;
 	}
 	DPRINTK("flashcache_do_pending: Index %d %lx",
-		index, cacheblk->cache_state);
+		index, (long int )cacheblk->cache_state);
 	VERIFY(cacheblk->cache_state & VALID);
  	atomic_dec(&dmc->cached_blocks);
 	dmc->flashcache_stats.pending_inval++;
@@ -518,7 +518,7 @@ flashcache_do_pending_noerror(struct kcached_job *job)
 		cacheblk->nr_queued--;
 		if (pending_job->action == INVALIDATE) {
 			DPRINTK("flashcache_do_pending: INVALIDATE  %llu",
-				next_job->bio->bi_sector);
+				pending_job->bio->bi_sector);
 			VERIFY(pending_job->bio != NULL);
 			queued = flashcache_inval_blocks(dmc, pending_job->bio);
 			if (queued) {
@@ -536,7 +536,7 @@ flashcache_do_pending_noerror(struct kcached_job *job)
 		}
 		flashcache_setlocks_multidrop(dmc, pending_job->bio);
 		DPRINTK("flashcache_do_pending: Sending down IO %llu",
-			pending_job->bio->bi_sector);
+			(u_int64_t)pending_job->bio->bi_sector);
 		/* Start uncached IO */
 		flashcache_start_uncached_io(dmc, pending_job->bio);
 		flashcache_free_pending_job(pending_job);
@@ -607,7 +607,7 @@ hash_block(struct cache_c *dmc, sector_t dbn)
 		value = jhash_1word(value, 0xbeef);
 	}
 	set_number = value % num_cache_sets;
-	DPRINTK("Hash: %llu(%lu)->%lu", dbn, value, set_number);
+	DPRINTK("Hash: %llu(%lu)->%lu", (u_int64_t)dbn, value, set_number);
 	return set_number;
 }
 
@@ -666,12 +666,12 @@ flashcache_lookup(struct cache_c *dmc, struct bio *bio, int *index)
 	int start_index;
 
 	start_index = dmc->assoc * set_number;
-	DPRINTK("Cache lookup : dbn %llu(%lu), set = %d",
-		dbn, io_size, set_number);
+	DPRINTK("Cache lookup : dbn %llu(%lu), set = %ld",
+		(u_int64_t)dbn, (long unsigned int)io_size, set_number);
 	find_valid_dbn(dmc, dbn, start_index, index);
 	if (*index >= 0) {
 		DPRINTK("Cache lookup HIT: Block %llu(%lu): VALID index %d",
-			     dbn, io_size, *index);
+			(u_int64_t)dbn, (long unsigned int)io_size, *index);
 		/* We found the exact range of blocks we are looking for */
 		return VALID;
 	}
@@ -687,16 +687,16 @@ flashcache_lookup(struct cache_c *dmc, struct bio *bio, int *index)
 	 */
 	*index = start_index + dmc->assoc;
 	if (invalid != -1) {
-		DPRINTK("Cache lookup MISS (INVALID): dbn %llu(%lu), set = %d, index = %d, start_index = %d",
-			     dbn, io_size, set_number, invalid, start_index);
+		DPRINTK("Cache lookup MISS (INVALID): dbn %llu(%lu), set = %ld, index = %d, start_index = %d",
+			(u_int64_t)dbn, (long unsigned int)io_size, set_number, invalid, start_index);
 		*index = invalid;
 	} else if (oldest_clean != -1) {
-		DPRINTK("Cache lookup MISS (VALID): dbn %llu(%lu), set = %d, index = %d, start_index = %d",
-			     dbn, io_size, set_number, oldest_clean, start_index);
+		DPRINTK("Cache lookup MISS (VALID): dbn %llu(%lu), set = %ld, index = %d, start_index = %d",
+			(u_int64_t)dbn, (long unsigned int)io_size, set_number, oldest_clean, start_index);
 		*index = oldest_clean;
 	} else {
-		DPRINTK_LITE("Cache read lookup MISS (NOROOM): dbn %llu(%lu), set = %d",
-			dbn, io_size, set_number);
+		DPRINTK_LITE("Cache read lookup MISS (NOROOM): dbn %llu(%lu), set = %ld",
+			(u_int64_t)dbn, (long unsigned int)io_size, set_number);
 	}
 	if (*index < (start_index + dmc->assoc))
 		return INVALID;
@@ -1356,7 +1356,7 @@ flashcache_read_hit(struct cache_c *dmc, struct bio* bio, int index)
 		dmc->flashcache_stats.read_hits++;
 		flashcache_setlocks_multidrop(dmc, bio);
 		DPRINTK("Cache read: Block %llu(%lu), index = %d:%s",
-			bio->bi_sector, bio->bi_size, index, "CACHE HIT");
+			(u_int64_t)bio->bi_sector, (long unsigned int)bio->bi_size, index, "CACHE HIT");
 		job = new_kcached_job(dmc, bio, index);
 		if (unlikely(dmc->sysctl_error_inject & READ_HIT_JOB_ALLOC_FAIL)) {
 			if (job)
@@ -1459,7 +1459,7 @@ flashcache_read(struct cache_c *dmc, struct bio *bio)
 	
 	DPRINTK("Got a %s for %llu (%u bytes)",
 	        (bio_rw(bio) == READ ? "READ":"READA"), 
-		bio->bi_sector, bio->bi_size);
+		(u_int64_t)bio->bi_sector, bio->bi_size);
 
 	flashcache_setlocks_multiget(dmc, bio);
 	res = flashcache_lookup(dmc, bio, &index);
@@ -1518,7 +1518,7 @@ flashcache_read(struct cache_c *dmc, struct bio *bio)
 			flashcache_invalid_insert(dmc, index);
 		flashcache_setlocks_multidrop(dmc, bio);
 		DPRINTK("Cache read: Block %llu(%lu):%s",
-			bio->bi_sector, bio->bi_size, "CACHE MISS & NO ROOM");
+			(u_int64_t)bio->bi_sector, (long unsigned int)bio->bi_size, "CACHE MISS & NO ROOM");
 		if (res == -1)
 			flashcache_clean_set(dmc, hash_block(dmc, bio->bi_sector), 0);
 		/* Start uncached IO */
@@ -1548,7 +1548,7 @@ flashcache_read(struct cache_c *dmc, struct bio *bio)
 	flashcache_setlocks_multidrop(dmc, bio);
 
 	DPRINTK("Cache read: Block %llu(%lu), index = %d:%s",
-		bio->bi_sector, bio->bi_size, index, "CACHE MISS & REPLACE");
+		(u_int64_t)bio->bi_sector, (long unsigned int)bio->bi_size, index, "CACHE MISS & REPLACE");
 	flashcache_read_miss(dmc, bio, index);
 }
 
@@ -1615,7 +1615,7 @@ flashcache_inval_block_set(struct cache_c *dmc, int set, struct bio *bio, int rw
 			    (cacheblk->nr_queued == 0)) {
 				atomic_dec(&dmc->cached_blocks);
 				DPRINTK("Cache invalidate (!BUSY): Block %llu %lx",
-					start_dbn, cacheblk->cache_state);
+					(u_int64_t)start_dbn, (long int)cacheblk->cache_state);
 				flashcache_hash_remove(dmc, i);
 				cacheblk->cache_state = INVALID;
 				flashcache_invalid_insert(dmc, i);
@@ -1730,7 +1730,7 @@ flashcache_inval_block_set_v3(struct cache_c *dmc, int set, struct bio *bio,
 	    (cacheblk->nr_queued == 0)) {
 		atomic_dec(&dmc->cached_blocks);
 		DPRINTK("Cache invalidate (!BUSY): Block %llu %lx",
-			start_dbn, cacheblk->cache_state);
+			(u_int64_t)cacheblk->dbn, (long int)cacheblk->cache_state);
 		flashcache_hash_remove(dmc, index);
 		cacheblk->cache_state = INVALID;
 		flashcache_invalid_insert(dmc, index);
@@ -1974,7 +1974,7 @@ flashcache_write_hit(struct cache_c *dmc, struct bio *bio, int index)
 			cacheblk->cache_state &= ~(BLOCK_IO_INPROG);
 			spin_unlock_irq(&cache_set->set_spin_lock);
 		} else {
-			DPRINTK("Queue job for %llu", bio->bi_sector);
+			DPRINTK("Queue job for %llu", (u_int64_t)bio->bi_sector);
 			atomic_inc(&dmc->nr_jobs);
 			dmc->flashcache_stats.ssd_writes++;
 			job->action = WRITECACHE;
